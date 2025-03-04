@@ -1,6 +1,6 @@
 {
   "compilerOptions": {
-    "noEmit": true,
+    //"noEmit": true,
     "target": "ES2020" /* Set the JavaScript language version for emitted JavaScript and include compatible library declarations. */,
 
     /* Modules */
