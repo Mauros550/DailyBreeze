@@ -8,7 +8,7 @@ const router = Router();
 
 
 router.get('*', (_, res) => {
-    res.sendFile(path.join(__dirname, '../../client/dist/index.html'));
+    res.sendFile(path.join(__dirname, '../../../client/dist/index.html'));
   });
 
 export default router;
