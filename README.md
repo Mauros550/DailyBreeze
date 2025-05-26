@@ -32,7 +32,8 @@ Built with **Express** & **TypeScript** on the back end and **Vite** + **TypeScr
 
 ## 📸 Screenshot
 
-![Dashboard Screenshot](./public/screenshot.png) ![Desktop Screenshot 2023 01 30 - 18 29 52 14](https://github.com/user-attachments/assets/2ad7187b-6532-4021-986d-e4a43a684489)
+![Desktop Screenshot 2025 05 25 - 18 49 49 56](https://github.com/user-attachments/assets/52261915-6ae2-40ba-a311-510459c30580)
+
 
 
 ---
