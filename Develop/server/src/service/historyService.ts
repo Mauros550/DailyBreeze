@@ -1,4 +1,3 @@
-// TODO: Define a City class with name and id properties
 import fs from 'fs/promises';
 import path from 'path';
 import { v4 as uuidv4 } from 'uuid';
@@ -6,50 +5,50 @@ import { fileURLToPath } from 'url';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-const historyFilePath = path.resolve(__dirname, '../data/searchHistory.json');
+
+// Point at your repo’s “server/db/db.json”
+const historyFilePath = path.resolve(__dirname, '../../db/db.json');
 
 interface City {
   id: string;
   name: string;
 }
-// TODO: Complete the HistoryService class
+
 class HistoryService {
-// Read the search history from the file
-private async read(): Promise<City[]> {
-  try {
-    const data = await fs.readFile(historyFilePath, 'utf-8');
-    return JSON.parse(data);
-  } catch (error) {
-    return [];
+  // Read the search history (returns [] if file doesn’t exist yet)
+  private async read(): Promise<City[]> {
+    try {
+      const data = await fs.readFile(historyFilePath, 'utf-8');
+      return JSON.parse(data);
+    } catch {
+      return [];
+    }
+  }
+
+  // Write the updated list back to disk
+  private async write(cities: City[]): Promise<void> {
+    await fs.mkdir(path.dirname(historyFilePath), { recursive: true });
+    await fs.writeFile(historyFilePath, JSON.stringify(cities, null, 2), 'utf-8');
+  }
+
+  // Public API
+  async getCities(): Promise<City[]> {
+    return this.read();
+  }
+
+  async addCity(cityName: string): Promise<City> {
+    const cities = await this.read();
+    const newCity: City = { id: uuidv4(), name: cityName };
+    cities.push(newCity);
+    await this.write(cities);
+    return newCity;
+  }
+
+  async removeCity(id: string): Promise<void> {
+    const cities = await this.read();
+    const filtered = cities.filter(c => c.id !== id);
+    await this.write(filtered);
   }
 }
-
-// Write the updated search history to the file
-private async write(cities: City[]): Promise<void> {
-  await fs.writeFile(historyFilePath, JSON.stringify(cities, null, 2));
-}
-
-// Get all cities from the search history
-async getCities(): Promise<City[]> {
-  return this.read();
-}
-
-// Add a city to the search history
-async addCity(cityName: string): Promise<void> {
-  const cities = await this.read();
-  const newCity = { id: uuidv4(), name: cityName };
-  cities.push(newCity);
-  await this.write(cities);
-}
-
-// Remove a city from the search history
-async removeCity(id: string): Promise<void> {
-  const cities = await this.read();
-  const updatedCities = cities.filter((city) => city.id !== id);
-  await this.write(updatedCities);
-  }
-}
-
-
 
 export default new HistoryService();

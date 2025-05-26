@@ -17,62 +17,69 @@ interface Weather {
   humidity: number;
 }
 
-// TODO: Complete the WeatherService class
+interface WeatherPayload {
+  current: Weather;
+  forecast: Weather[];
+}
+
 class WeatherService {
+  private apiKey = process.env.API_KEY!;
+  private baseGeoUrl = 'https://api.openweathermap.org/geo/1.0/direct';
+  private baseForecastUrl = 'https://api.openweathermap.org/data/2.5/forecast';
 
-  private apiKey = process.env.API_KEY;
-
-  // Fetch location data (coordinates) for a city
-  private async fetchLocationData(query: string): Promise<Coordinates> {
-    const response = await axios.get(
-      `https://api.openweathermap.org/geo/1.0/direct?q=${query}&limit=1&appid=${this.apiKey}`
-    );
-    return { lat: response.data[0].lat, lon: response.data[0].lon };
+  // 1) Turn city name → { lat, lon }
+  private async fetchLocation(query: string): Promise<Coordinates> {
+    const url = `${this.baseGeoUrl}?q=${encodeURIComponent(query)}&limit=1&appid=${this.apiKey}`;
+    const res = await axios.get(url);
+    if (!res.data.length) throw new Error(`City "${query}" not found`);
+    const { lat, lon } = res.data[0];
+    return { lat, lon };
   }
 
-  // Fetch weather data using coordinates
-  private async fetchWeatherData(coordinates: Coordinates): Promise<any> {
-    const response = await axios.get(
-      `https://api.openweathermap.org/data/2.5/forecast?lat=${coordinates.lat}&lon=${coordinates.lon}&appid=${this.apiKey}&units=imperial`
-    );
-    return response.data;
+  // 2) Fetch the 5-day forecast
+  private async fetchForecast(coords: Coordinates): Promise<any> {
+    const url = `${this.baseForecastUrl}?lat=${coords.lat}&lon=${coords.lon}&units=imperial&appid=${this.apiKey}`;
+    return (await axios.get(url)).data;
   }
 
-  // Parse the current weather data
-  private parseCurrentWeather(response: any): Weather {
+  // 3) Extract the “current” from the first list item
+  private parseCurrent(data: any): Weather {
+    const first = data.list[0];
     return {
-      city: response.city.name,
-      date: new Date(response.list[0].dt * 1000).toLocaleDateString(),
-      icon: response.list[0].weather[0].icon,
-      iconDescription: response.list[0].weather[0].description,
-      tempF: response.list[0].main.temp,
-      windSpeed: response.list[0].wind.speed,
-      humidity: response.list[0].main.humidity,
+      city: data.city.name,
+      date: new Date(first.dt * 1000).toLocaleDateString(),
+      icon: first.weather[0].icon,
+      iconDescription: first.weather[0].description,
+      tempF: first.main.temp,
+      windSpeed: first.wind.speed,
+      humidity: first.main.humidity,
     };
   }
 
-  // Build the 5-day forecast array
-  private buildForecastArray(currentWeather: Weather, weatherData: any[]): Weather[] {
-    return weatherData.map((item) => ({
-      city: currentWeather.city,
-      date: new Date(item.dt * 1000).toLocaleDateString(),
-      icon: item.weather[0].icon,
-      iconDescription: item.weather[0].description,
-      tempF: item.main.temp,
-      windSpeed: item.wind.speed,
-      humidity: item.main.humidity,
-    }));
+  // 4) Take the next 5 days (every 8th entry) and map to our Weather type
+  private parseForecast(data: any): Weather[] {
+    return data.list
+      .filter((_: any, idx: number) => idx % 8 === 0)
+      .slice(1, 6)
+      .map((entry: any) => ({
+        city: data.city.name,
+        date: new Date(entry.dt * 1000).toLocaleDateString(),
+        icon: entry.weather[0].icon,
+        iconDescription: entry.weather[0].description,
+        tempF: entry.main.temp,
+        windSpeed: entry.wind.speed,
+        humidity: entry.main.humidity,
+      }));
   }
 
-  // Get weather data for a city
-  async getWeatherForCity(city: string): Promise<Weather[]> {
-    const coordinates = await this.fetchLocationData(city);
-    const weatherData = await this.fetchWeatherData(coordinates);
-    const currentWeather = this.parseCurrentWeather(weatherData);
-    const forecast = this.buildForecastArray(currentWeather, weatherData.list.slice(1, 6));
-    return [currentWeather, ...forecast];
+  // Public API: returns an object matching your front end
+  async getWeatherForCity(cityName: string): Promise<WeatherPayload> {
+    const coords = await this.fetchLocation(cityName);
+    const rawData = await this.fetchForecast(coords);
+    const current = this.parseCurrent(rawData);
+    const forecast = this.parseForecast(rawData);
+    return { current, forecast };
   }
 }
-
 
 export default new WeatherService();
