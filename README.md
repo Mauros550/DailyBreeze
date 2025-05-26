@@ -1,6 +1,7 @@
 # 🌤️ DailyBreeze Weather Dashboard
 
-[Live Demo on Render]((https://dailybreeze.onrender.com))
+[Live Demo on Render] https://dailybreeze.onrender.com
+
 
 ---
 
