@@ -64,28 +64,7 @@ npm install
 npm run build
 Run Locally
 
-bash
-Copy
-Edit
-npm start            # from server/, serves client at localhost:3001
-Env Vars
-Create a .env in server/:
 
-ini
-Copy
-Edit
-API_KEY=your_openweather_key
-PORT=3001
-📄 Deployment
-Build Command:
-cd client && npm ci && npm run build && cd ../server && npm ci && npm run build
-
-Start Command:
-cd server && npm start
-
-Environment Variables:
-
-API_KEY = Your OpenWeather API key
 
 👤 Author
 Your Name • GitHub • Email
