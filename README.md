@@ -66,6 +66,5 @@ Run Locally
 
 
 
-👤 Author
-Your Name • GitHub • Email
+
 
